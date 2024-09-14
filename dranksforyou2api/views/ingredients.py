@@ -38,12 +38,20 @@ class IngredientView(ViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
      
     def update(self, request, pk):
+            
+        """Handle PUT requests to update an ingredient"""
+        try:
             ingredient = Ingredient.objects.get(pk=pk)
             ingredient.name = request.data.get("name", ingredient.name)
-            ingredient.image = request.data.get("image", ingredient.image) 
+            ingredient.image = request.data.get("image", ingredient.image)
             ingredient.save()
 
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            serializer = IngredientSerializer(ingredient)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Ingredient.DoesNotExist:
+            return Response({'message': 'Ingredient not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 
     def destroy(self, request, pk):
