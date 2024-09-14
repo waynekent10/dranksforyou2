@@ -30,7 +30,7 @@ class LiquorView(ViewSet):
     def update(self, request, pk):
             liquor = Liquor.objects.get(pk=pk)
             liquor.name = request.data.get("name", liquor.name)
-            liquor.image = request.data.get["image"]
+            liquor.image = request.data.get("image", liquor.image) 
             liquor.save()
 
             return Response(None, status=status.HTTP_204_NO_CONTENT)
