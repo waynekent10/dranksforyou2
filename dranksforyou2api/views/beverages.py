@@ -45,7 +45,7 @@ class BeverageView(ViewSet):
             beverage.ingredient_id = request.data.get("ingredient_id", beverage.ingredient_id)
             beverage.description = request.data.get("description", beverage.description)
             beverage.price = request.data.get("price", beverage.price)
-            beverage.image = request.data["image", beverage.image]
+            beverage.image = request.data.get["image", beverage.image]
             beverage.save()
 
             serializer = BeverageSerializer(beverage)
