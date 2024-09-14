@@ -28,12 +28,19 @@ class LiquorView(ViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
      
     def update(self, request, pk):
+        """Handle PUT requests to update a liquor"""
+        try:
             liquor = Liquor.objects.get(pk=pk)
             liquor.name = request.data.get("name", liquor.name)
-            liquor.image = request.data.get("image", liquor.image) 
+            liquor.image = request.data.get("image", liquor.image)
             liquor.save()
 
-            return Response(None, status=status.HTTP_204_NO_CONTENT)
+            serializer = LiquorSerializer(liquor)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Liquor.DoesNotExist:
+            return Response({'message': 'Liquor not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk):
         """Handle DELETE requests to delete a liquor"""
