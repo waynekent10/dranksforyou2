@@ -45,13 +45,14 @@ class BeverageView(ViewSet):
             beverage.ingredient_id = request.data.get("ingredient_id", beverage.ingredient_id)
             beverage.description = request.data.get("description", beverage.description)
             beverage.price = request.data.get("price", beverage.price)
-            beverage.image = request.data.get["image", beverage.image]
+            beverage.image = request.data.get("image", beverage.image)  # Corrected line
             beverage.save()
 
             serializer = BeverageSerializer(beverage)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Beverage.DoesNotExist:
             return Response({'message': 'Beverage not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
     def destroy(self, request, pk):
         """Handle DELETE requests to delete a beverage"""
