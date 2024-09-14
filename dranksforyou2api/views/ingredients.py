@@ -40,7 +40,7 @@ class IngredientView(ViewSet):
     def update(self, request, pk):
             ingredient = Ingredient.objects.get(pk=pk)
             ingredient.name = request.data.get("name", ingredient.name)
-            ingredient.image = request.data["image"]
+            ingredient.image = request.data.get["image"]
             ingredient.save()
 
             return Response(None, status=status.HTTP_204_NO_CONTENT)
