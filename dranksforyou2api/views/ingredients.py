@@ -32,7 +32,8 @@ class IngredientView(ViewSet):
         """Handle POST operations"""
         ingredient = Ingredient.objects.create(
            name=request.data["name"],
-           image=request.data["image"]
+           image=request.data["image"],
+           uid=request.user
        )
         serializer = IngredientSerializer(ingredient)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -42,6 +43,8 @@ class IngredientView(ViewSet):
         """Handle PUT requests to update an ingredient"""
         try:
             ingredient = Ingredient.objects.get(pk=pk)
+            if ingredient.uid !=request.user:
+                return Response ({'message': 'You do not have permission to update this beverage'}, status=status.HTTP_403_FORBIDDEN)
             ingredient.name = request.data.get("name", ingredient.name)
             ingredient.image = request.data.get("image", ingredient.image)
             ingredient.save()
@@ -58,6 +61,9 @@ class IngredientView(ViewSet):
         """Handle DELETE requests to delete an ingredient"""
         try:
             ingredient = Ingredient.objects.get(pk=pk)
+            if ingredient.uid !=request.user:
+                return Response ({'message': 'You do not have permission to update this beverage'}, status=status.HTTP_403_FORBIDDEN)
+            
             ingredient.delete()
             return Response({'message': 'Ingredient deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Ingredient.DoesNotExist:
@@ -66,5 +72,5 @@ class IngredientView(ViewSet):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ['id', 'name', 'image']
+        fields = ['id', 'name', 'image', 'uid']
         depth = 1

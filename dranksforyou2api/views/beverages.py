@@ -30,6 +30,7 @@ class BeverageView(ViewSet):
                 description=request.data["description"],
                 price=request.data["price"],
                 image=request.data["image"],
+                uid=request.user
             )
             serializer = BeverageSerializer(beverage)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -40,6 +41,9 @@ class BeverageView(ViewSet):
         """Handle PUT requests to update a beverage"""
         try:
             beverage = Beverage.objects.get(pk=pk)
+            if beverage.uid !=request.user:
+                return Response ({'message': 'You do not have permission to update this beverage'}, status=status.HTTP_403_FORBIDDEN)
+            
             beverage.name = request.data.get("name", beverage.name)
             beverage.liquor_id = request.data.get("liquor_id", beverage.liquor_id)
             beverage.ingredient_id = request.data.get("ingredient_id", beverage.ingredient_id)
@@ -58,6 +62,9 @@ class BeverageView(ViewSet):
         """Handle DELETE requests to delete a beverage"""
         try:
             beverage = Beverage.objects.get(pk=pk)
+            if beverage.uid != request.user:
+                return Response({'message': 'You do not have permission to delete this beverage'}, status=status.HTTP_403_FORBIDDEN)
+            
             beverage.delete()
             return Response({'message': 'Beverage deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Beverage.DoesNotExist:
@@ -66,5 +73,5 @@ class BeverageView(ViewSet):
 class BeverageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Beverage
-        fields = ['id', 'name', 'ingredient_id', 'liquor_id', 'description', 'price', 'image']
-        depth = 2
+        fields = ['id', 'name', 'ingredient_id', 'liquor_id', 'description', 'price', 'image', 'uid']
+        depth = 1
