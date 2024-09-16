@@ -2,7 +2,7 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from dranksforyou2api.models import Ingredient
+from dranksforyou2api.models import Ingredient, User
 
 class IngredientView(ViewSet):
     def retrieve(self,request, pk):
@@ -30,10 +30,10 @@ class IngredientView(ViewSet):
     
     def create(self, request):
         """Handle POST operations"""
+        user = User.objects.get(pk=request.data['user_id'])
         ingredient = Ingredient.objects.create(
-           name=request.data["name"],
-           image=request.data["image"],
-           uid=request.user
+            user =user,
+            name=request.data["name"],
        )
         serializer = IngredientSerializer(ingredient)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -43,10 +43,9 @@ class IngredientView(ViewSet):
         """Handle PUT requests to update an ingredient"""
         try:
             ingredient = Ingredient.objects.get(pk=pk)
-            if ingredient.uid !=request.user:
-                return Response ({'message': 'You do not have permission to update this beverage'}, status=status.HTTP_403_FORBIDDEN)
+            user = User.objects.get(pk=request.data['user_id'])
+            ingredient.user = user
             ingredient.name = request.data.get("name", ingredient.name)
-            ingredient.image = request.data.get("image", ingredient.image)
             ingredient.save()
 
             serializer = IngredientSerializer(ingredient)
@@ -61,9 +60,6 @@ class IngredientView(ViewSet):
         """Handle DELETE requests to delete an ingredient"""
         try:
             ingredient = Ingredient.objects.get(pk=pk)
-            if ingredient.uid !=request.user:
-                return Response ({'message': 'You do not have permission to update this beverage'}, status=status.HTTP_403_FORBIDDEN)
-            
             ingredient.delete()
             return Response({'message': 'Ingredient deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Ingredient.DoesNotExist:
@@ -72,5 +68,5 @@ class IngredientView(ViewSet):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ['id', 'name', 'image', 'uid']
+        fields = ['id', 'name', 'user']
         depth = 1

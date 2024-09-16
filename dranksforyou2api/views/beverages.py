@@ -2,7 +2,7 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from dranksforyou2api.models import Beverage
+from dranksforyou2api.models import Beverage, User
 
 class BeverageView(ViewSet):
     def retrieve(self, request, pk):
@@ -23,14 +23,15 @@ class BeverageView(ViewSet):
     def create(self, request):
         """Handle POST requests to create a new beverage"""
         try:
+            user = User.objects.get(pk=request.data['user_id'])
             beverage = Beverage.objects.create(
+                user=user,
                 name=request.data["name"],
                 liquor_id=request.data["liquor_id"],
                 ingredient_id=request.data["ingredient_id"],
                 description=request.data["description"],
                 price=request.data["price"],
                 image=request.data["image"],
-                uid=request.user
             )
             serializer = BeverageSerializer(beverage)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -41,9 +42,8 @@ class BeverageView(ViewSet):
         """Handle PUT requests to update a beverage"""
         try:
             beverage = Beverage.objects.get(pk=pk)
-            if beverage.uid !=request.user:
-                return Response ({'message': 'You do not have permission to update this beverage'}, status=status.HTTP_403_FORBIDDEN)
-            
+            user = User.objects.get(pk=request.data['user_id'])
+            beverage.user = user
             beverage.name = request.data.get("name", beverage.name)
             beverage.liquor_id = request.data.get("liquor_id", beverage.liquor_id)
             beverage.ingredient_id = request.data.get("ingredient_id", beverage.ingredient_id)
@@ -62,9 +62,6 @@ class BeverageView(ViewSet):
         """Handle DELETE requests to delete a beverage"""
         try:
             beverage = Beverage.objects.get(pk=pk)
-            if beverage.uid != request.user:
-                return Response({'message': 'You do not have permission to delete this beverage'}, status=status.HTTP_403_FORBIDDEN)
-            
             beverage.delete()
             return Response({'message': 'Beverage deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Beverage.DoesNotExist:
@@ -73,5 +70,5 @@ class BeverageView(ViewSet):
 class BeverageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Beverage
-        fields = ['id', 'name', 'ingredient_id', 'liquor_id', 'description', 'price', 'image', 'uid']
-        depth = 1
+        fields = ['id', 'name', 'ingredient_id', 'liquor_id', 'description', 'price', 'image', 'user']
+        depth = 2

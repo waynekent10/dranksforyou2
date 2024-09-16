@@ -22,8 +22,7 @@ class LiquorView(ViewSet):
         """Handle POST operations"""
         liquor = Liquor.objects.create(
            name=request.data["name"],
-           image=request.data["image"],
-           uid=request.user
+           image=request.data["image"]
        )
         serializer = LiquorSerializer(liquor)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -32,9 +31,6 @@ class LiquorView(ViewSet):
         """Handle PUT requests to update a liquor"""
         try:
             liquor = Liquor.objects.get(pk=pk)
-            if liquor.uid != request.user:
-                return Response({'message': 'You do not have permission to delete this beverage'}, status=status.HTTP_403_FORBIDDEN)
-            
             liquor.name = request.data.get("name", liquor.name)
             liquor.image = request.data.get("image", liquor.image)
             liquor.save()
@@ -50,9 +46,6 @@ class LiquorView(ViewSet):
         """Handle DELETE requests to delete a liquor"""
         try:
             liquor = Liquor.objects.get(pk=pk)
-            if liquor.uid != request.user:
-                return Response({'message': 'You do not have permission to delete this beverage'}, status=status.HTTP_403_FORBIDDEN)
-            
             liquor.delete()
             return Response({'message': 'Liquor deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
         except Liquor.DoesNotExist:
@@ -61,5 +54,5 @@ class LiquorView(ViewSet):
 class LiquorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Liquor
-        fields = ['id', 'name', 'image', 'uid']
+        fields = ['id', 'name', 'image']
         depth = 1
