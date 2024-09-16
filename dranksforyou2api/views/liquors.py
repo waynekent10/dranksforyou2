@@ -2,7 +2,7 @@ from django.http import HttpResponseServerError
 from rest_framework.viewsets import ViewSet
 from rest_framework.response import Response
 from rest_framework import serializers, status
-from dranksforyou2api.models import Liquor
+from dranksforyou2api.models import Liquor, User
 
 class LiquorView(ViewSet):
     def retrieve(self,request, pk):
@@ -20,9 +20,10 @@ class LiquorView(ViewSet):
     
     def create(self, request):
         """Handle POST operations"""
+        user = User.objects.get(pk=request.data['user_id'])
         liquor = Liquor.objects.create(
+           user =user,
            name=request.data["name"],
-           image=request.data["image"]
        )
         serializer = LiquorSerializer(liquor)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -31,8 +32,9 @@ class LiquorView(ViewSet):
         """Handle PUT requests to update a liquor"""
         try:
             liquor = Liquor.objects.get(pk=pk)
+            user = User.objects.get(pk=request.data['user_id'])
+            liquor.user = user
             liquor.name = request.data.get("name", liquor.name)
-            liquor.image = request.data.get("image", liquor.image)
             liquor.save()
 
             serializer = LiquorSerializer(liquor)
@@ -54,5 +56,5 @@ class LiquorView(ViewSet):
 class LiquorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Liquor
-        fields = ['id', 'name', 'image']
+        fields = ['id', 'name', 'user']
         depth = 1
